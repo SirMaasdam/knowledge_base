@@ -1,0 +1,10 @@
+{% if img %}
+    <div class="uk-ing uk-align-center" >
+        {{ img.item.render_to_show }}
+    </div>
+{% endif %}
+<p class="uk-margin-small-top">
+    {% if text %}
+        {{ text.item.render_to_show|truncatewords_html:70 }}
+    {% endif %}
+</p>

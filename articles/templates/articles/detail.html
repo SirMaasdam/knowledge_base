@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}
+  {{ article.title }}
+{% endblock %}
+{% block content %}
+<div class="uk-section uk-section-muted">
+  <div class="uk-container">
+    <ul class="uk-breadcrumb uk-margin-medium-top-">
+      <li><a href="{% url 'articles:articles' %}">Главная</a></li>
+      <li><span>{{ article.title }}</span></li>
+    </ul>
+    <div class="uk-background-default uk-border-rounded uk-box-shadow-small">
+      <div class="uk-container uk-container-xsmall uk-padding-large">
+        <article class="uk-article">
+          <h1 class="uk-article-title">{{ article.title }} ({{ total_views }})</h1>
+          <div class="uk-article-meta uk-margin uk-flex uk-flex-middle">
+            <img class="uk-border-circle uk-avatar-small" src="https://via.placeholder.com/80x80" alt="Sara Galen">
+            <div>
+                Добавлeно: {{ article.user.username}}
+                {{ article.created.day }}.{{ article.created.month }}.{{ article.created.year }}<br>
+                Обновлено: {{ article.updated.day }}.{{ article.updated.month }}.{{ article.updated.year }}
+            </div>
+          </div>
+          {% for content in article.contents.all %}
+              {{ content.item.render_to_show }}
+          {% endfor %}
+        </article>
+        <div class="share uk-text-center uk-margin-large-top">
+        </div>
+        <h2>Комментарии: ({{ article.comments.count }})</h2>
+        {% for parent_comment in article.get_comment %}
+            <div class="uk-card">
+                <div>
+                    <img class="uk-avatar uk-border-circle" src="{% static "img/avatar.png" %}" alt="John Brown" />
+                </div>
+                <div class="comment-margin-left">
+                    <h5 class="uk-margin-remove-bottom">{{ parent_comment.author }} {{ parent_comment.id }}</h5>
+                    <p class="uk-article-meta uk-margin-xsmall-top">{{ parent_comment.message }}</p>
+                </div>
+            </div>
+            {% if request.user.is_authenticated %}
+                <div class="uk-text-right" data-user="{{ parent_comment.author }}" data-id="{{ parent_comment.id }}">
+                    <a href="#comment-form" class="uk-button-link">Ответить</a>
+                </div>
+            {% endif %}
+            {% for child_comment in parent_comment.child_comments.all %}
+                <div class="uk-card child">
+                    <div>
+                        <img class="uk-avatar uk-border-circle" src="{% static "img/avatar.png" %}" alt="John Brown" />
+                    </div>
+                    <div class="comment-margin-left">
+                        <h5 class="uk-margin-remove-bottom">{{ child_comment.author }}</h5>
+                        <p class="uk-article-meta uk-margin-xsmall-top">{{ child_comment.message }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endfor %}
+      </div>
+    <div class="uk-container uk-container-xsmall uk-padding-large">
+        {% if request.user.is_authenticated %}
+            <form class="uk-form-stacked uk-margin-medium-top" method="post" id="comment-form">
+                {% csrf_token %}
+                <div class="uk-margin-bottom">
+                    <input id="comment-id" type="hidden" name="comment_id">
+                    <label class="uk-form-label" for="message">Оставьте комментарий:</label>
+                    <div class="uk-form-controls">
+                        {{ comment_form.message }}
+                    </div>
+                </div>
+                <div class="uk-text-right">
+                    <input class="uk-button uk-button-primary uk-border-rounded" type="submit" value="Отправить">
+                </div>
+            </form>
+        {% else%}
+            <div class="share uk-text-center uk-margin-large-top">
+                <p><a>Войдите</a>, чтобы комментировать</p>
+            </div>
+        {% endif %}
+    </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block domready %}
+    $(document).on('click', ".uk-button-link", function(event) {
+        $('#comment-id').val($(this).parent().data('id'));
+        $('#id_message').val($.trim($(this).parent().data('user') + ', ' + ($('#id_message').val())));
+    });
+{% endblock %}

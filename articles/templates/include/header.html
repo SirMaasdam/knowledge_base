@@ -1,0 +1,22 @@
+<header class="uk-background-primary uk-background-norepeat uk-background-cover uk-background-center-center uk-light">
+    <nav class="uk-navbar-container">
+      <div class="uk-container">
+        <div class="nav-flex">
+          <div class="uk-navbar-left">
+            <a class="uk-navbar-item uk-logo uk-visible@m" href="{% url 'articles:articles' %}">Knowledge Base</a>
+          </div>
+          <div class="uk-navbar-right">
+            <ul class="uk-navbar-nav">
+              <li ><a href="{% url 'cms:manage' %}">Менеджер статей</a></li>
+              <li ><a href="{% url 'articles:articles' %}">Все статьи</a></li>
+              {% if request.user.is_authenticated %}
+                <li ><a href="#">{{ request.user.username }}</a></li>
+                <li ><a href="{% url 'account:logout' %}">Выйти</a></li>
+              {% else %}
+                <li ><a href="{% url 'account:login' %}">Войти</a></li>
+              {% endif %}
+            </ul>
+        </div>
+      </div>
+    </nav>
+</header>

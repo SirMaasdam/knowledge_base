@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load articles_tag %}
+{% block title %}
+    Список статей
+{% endblock %}
+{% block search %}
+<div class="uk-background-primary uk-background-norepeat uk-background-cover uk-background-center-center uk-light">
+  <div class="uk-section uk-section-small uk-section-hero uk-position-relative" data-uk-scrollspy="cls: uk-animation-slide-bottom-medium; repeat: true">
+    <div class="uk-container">
+        <h1 class="uk-text-center uk-margin-remove-top">Чем мы можем помочь Вам?</h1>
+        <div class="hero-search uk-margin-bottom">
+            <div class="uk-position-relative">
+                <form class="uk-search uk-search-default uk-width-1-1">
+                    <span data-uk-search-icon="ratio: 1.2"></span>
+                    {{ form.as_p }}
+                </form>
+            </div>
+        </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block content %}
+    {% if articles %}
+        {% for article in articles %}
+            <div>
+              <div class="uk-card uk-card-category uk-card-default uk-card-hover uk-card-body uk-inline uk-border-rounded uk-width-1-1">
+                <a class="uk-position-cover" href="{{ article.get_absolute_url_for_manage }}"></a>
+                <h3 class="uk-card-title uk-margin-remove uk-text-primary">{{ article.title }}</h3>
+                  <div class="uk-article-meta uk-flex uk-flex-middle">
+                  <div>
+                    Автор: {{ article.user.username }}
+                  </div>
+                </div>
+                  <div class="uk-article-meta uk-flex uk-flex-middle">
+                      Добавлeно: {{ article.created.day }}.{{ article.created.month }}.{{ article.created.year }}<br>
+                      Обновлено: {{ article.updated.day }}.{{ article.updated.month }}.{{ article.updated.year }}
+                  </div>
+                  {% show_post_description article  %}
+                  {% if article.draft %}
+                      <div class="uk-article-meta uk-flex uk-flex-middle orange">
+                          Черновик
+                      </div>
+                  {% else %}
+                      <div class="uk-article-meta uk-flex uk-flex-middle green">
+                          Опубликован
+                      </div>
+                  {% endif %}
+              </div>
+
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>Нет статей, удовлетворяющих запросу</p>
+    {% endif %}
+    {% include "include/paginator.html" with page=articles %}
+    <div class="uk-align-center uk-text-center">
+        <a href="{% url 'cms:create' %}">Создать контент</a>
+    </div>
+{% endblock %}

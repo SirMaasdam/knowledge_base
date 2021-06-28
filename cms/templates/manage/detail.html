@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {{ article.title }}
+{% endblock %}
+{% block content %}
+    <ul class="uk-breadcrumb uk-margin-medium-top-">
+      <li><a href="{% url 'cms:manage' %}">Главная</a></li>
+      <li><span>{{ article.title }}</span></li>
+    </ul>
+    <div class="uk-background-default uk-border-rounded uk-box-shadow-small">
+      <div class="uk-container uk-container-xsmall uk-padding-large">
+        <article class="uk-article">
+          <h1 contenteditable="true" class="uk-article-title">{{ article.title }}</h1>
+          <div class="uk-article-meta uk-margin uk-flex uk-flex-middle">
+            <img class="uk-border-circle uk-avatar-small" src="https://via.placeholder.com/80x80" alt="Sara Galen">
+            <div>
+                Добавлeно: {{ article.user.username}}
+                {{ article.created.day }}.{{ article.created.month }}.{{ article.created.year }}<br>
+                Обновлено: {{ article.updated.day }}.{{ article.updated.month }}.{{ article.updated.year }}
+            </div>
+          </div>
+        <div id="order-contents">
+          {% for content in article.contents.all %}
+              <div class="point" data-content="{{ content.id }}" data-item="{{ content.item.id }}" data-type="{{ content.item.get_type }}">
+                {{ content.item.render_to_manage }}
+                <span class="delete-btn">✕</span>
+              </div>
+          {% endfor %}
+        </div>
+        <div class="uk-margin-top">
+            <button class="add-content uk-button uk-button-primary uk-border-rounded uk-float-left" data-type="title">Добавить заголовок</button>
+            <button class="add-content uk-button uk-button-primary uk-border-rounded center" data-type="text">Добавить текст</button>
+            <button class="add-content uk-button uk-button-primary uk-border-rounded uk-float-right" data-type="image">Добавить картинку</button>
+        </div>
+        <button class="send-content uk-button uk-button-primary uk-border-rounded uk-float-right uk-margin-top">Опубликовать</button>
+        </article>
+          </div>
+      </div>
+
+{% endblock %}
+{% block domready %}
+    let allContent = {
+        "file": {},
+        "items": {},
+        "items_file": new FormData()
+    };
+    let indexFile = 0;
+    let index = $('#order-contents').children().length;
+    isAdd = !!index
+
+
+
+    $('#order-contents').children().each(function() {
+        index = $(this).index();
+        isAdd = true;
+    });
+
+    let imgForm = 1;
+    let content = null;
+    const temp = {
+        'text': '<p class="manage-text" data-type="text" contenteditable="true">Напишите текст</p>',
+        'title': '<h2 class="manage-text" data-type="title" contenteditable="true">Напишите текст</h2>',
+    };
+
+    $(document).on('change', ".add-image", function(event) {
+        if ($(this).data('index') !== undefined) {
+            allContent["file"][$(this).data('index')].content = event.target.files[0];
+        }
+        else {
+            allContent["file"][indexFile] = {
+                "content": event.target.files[0]
+            };
+            $(this).attr('data-index', `${indexFile}`)
+            indexFile += 1;
+        }
+
+        let reader = new FileReader();
+        const id = `#${$(this).data('id')}`
+        reader.onload = function (e) {
+            $(id).attr('src', e.target.result);
+        };
+        reader.readAsDataURL(this.files[0]);
+    });
+
+    $(document).on('click', ".delete-btn", function(event) {
+        if ($(this).parent('.point').data('type') === "image") {
+            delete allContent["file"][$(this).index()];
+        }
+        $(this).parent().fadeOut();
+    });
+
+
+    $('.add-content').click(function() {
+        const type = $(this).data('type');
+        index += 1;
+        if (!isAdd) {
+            index = 0;
+            isAdd = !isAdd;
+        }
+        if (type !== 'image') {
+            $('#order-contents').append(
+                `<div class="point" data-type="${type}">
+                    ${temp[type]}
+                    <span class="delete-btn">✕</span>
+                </div>`
+            );
+        }
+        else if (type === 'image') {
+            $('#order-contents').append(`
+              <div class="point" data-type="${type}">
+                <div>
+                    <img id="img${index}">
+                    <label>Фотография</label><input data-id="img${index}" type="file" class="add-image">
+                </div>
+                <span class="delete-btn">✕</span>
+              </div>`);
+        }
+    });
+
+    function dataPreparation() {
+        let i = 0;
+        let itemOrder = 0;
+        let fileIndex = 0
+        $('#order-contents').children().each(function () {
+            if ($(this).data('type') !== "image") {
+                allContent["items"][i] = {
+                    "article_id": {{ article.id }},
+                    "content": $(this).contents(".manage-text").text(),
+                    "item_type": $(this).data('type'),
+                };
+                if ($(this).is(':hidden') && !$(this).data('content')) {
+                    delete allContent["items"][i];
+                }
+                else {
+                    if (!$(this).is(':hidden')) {
+                        allContent["items"][i].order = itemOrder;
+                        itemOrder += 1;
+                    }
+                    allContent["items"][i].item_id = $(this).data('item') ? $(this).data('item') : null;
+                    allContent["items"][i].content_id = $(this).data('content') ? $(this).data('content') : null;
+                    allContent["items"][i].delete = !!$(this).is(':hidden');
+                    allContent["items"][i].old_item = !!$(this).data('content');
+                    i += 1;
+                }
+            }
+            else if ($(this).data('type') === "image") {
+                if ($(this).is(':hidden') && !$(this).data('content')) {
+
+                }
+                else {
+                    if ($(this).data('content')) {
+                        allContent["items_file"].append(i, {{ article.id }});
+                        if ($(this).is(':hidden')) {
+                            allContent["items_file"].append(i, "delete");
+                        }
+                        else {
+                            allContent["items_file"].append(i, itemOrder);
+                            itemOrder += 1;
+                        }
+                        allContent["items_file"].append(i, $(this).data('content'));
+                    }
+                    else {
+                        allContent["items_file"].append(i, allContent["file"][fileIndex].content);
+                        allContent["items_file"].append(i, {{ article.id }});
+                        allContent["items_file"].append(i, itemOrder);
+                        allContent["items_file"].append(i, "adding");
+                        itemOrder += 1;
+                        fileIndex += 1;
+                    }
+                    i += 1;
+                }
+            }
+        });
+    }
+
+    $(document).on('click', ".send-content", function(event) {
+        dataPreparation();
+        sendData();
+    });
+
+    function sendData() {
+        $.ajax({
+            url: '{% url 'cms:create_image_content' %}',
+            type: 'POST',
+            data: allContent["items_file"],
+            cache: false,
+            dataType: 'json',
+            processData: false,
+            contentType: false,
+        });
+        $.ajax({
+            type: 'POST',
+            url: '{% url 'cms:create_content' %}',
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            data: JSON.stringify(allContent["items"]),
+        });
+        alert('Контент опубликован')
+    }
+{% endblock %}

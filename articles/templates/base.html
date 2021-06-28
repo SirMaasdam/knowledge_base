@@ -1,0 +1,46 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css?family=Muli:300,400,500,600,700&display=swap" rel="stylesheet">
+  <title>{% block title %}Educa{% endblock %}</title>
+  <link href="{% static "css/main.css" %}" rel="stylesheet">
+</head>
+<body>
+{% include 'include/header.html' %}
+<div id="content">
+    {% block search %}
+    {% endblock %}
+    <div class="uk-section uk-section-muted">
+      <div class="uk-container">
+        {% block content %}
+        {% endblock %}
+      </div>
+    </div>
+</div>
+{% include 'include/footer.html' %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.1/src/js.cookie.min.js"></script>
+<script>
+    var csrftoken = Cookies.get('csrftoken');
+    function csrfSafeMethod(method) {
+      return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+    $.ajaxSetup({
+      beforeSend: function(xhr, settings) {
+        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+          xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        }
+      }
+    });
+
+    $(document).ready(function() {
+      {% block domready %}
+      {% endblock %}
+    });
+</script>
+</body>
+</html>

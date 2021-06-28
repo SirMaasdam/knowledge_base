@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Log-in{% endblock %}
+
+{% block content %}
+      <div class="uk-background-default uk-border-rounded uk-box-shadow-small">
+        <div class="uk-container uk-container-xsmall uk-padding-large">
+            <article class="uk-article">
+              <h1 class="uk-article-title">Войдите в систему для получения дополнительных возможностей</h1>
+              <div class="uk-article-content">
+                <p class="uk-text-lead uk-text-muted"></p>
+                <form method="post">
+                    {{ form.as_p }}
+                    {% csrf_token %}
+                    <p><input class="add-content-btn uk-button uk-button-primary uk-border-rounded" type="submit" value="Войти"></p>
+                </form>
+              </div>
+              <a href="{% url 'account:register' %}"><div class="uk-margin-small-right uk-text-normal" data-uk-spinner="ratio: 0.6"></div>Зарегистрироваться</a>
+            </article>
+        </div>
+      </div>
+
+{% endblock %}
